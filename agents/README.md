@@ -262,6 +262,50 @@ with open("initial_messages.json", "w") as f:
     json.dump(initial_messages, f, indent=2)
 ```
 
+## NeoSigma tracing
+
+Install the optional SDK with `uv sync --extra neosigma`. Use the extra when
+launching via `uv run` as well. Set the project in the runner's environment
+and provide the API key through your runtime's secret configuration.
+
+```bash
+export NEOSIGMA_PROJECT='<project-slug>'
+# NEOSIGMA_API_KEY is set by your runtime
+```
+
+Each trajectory records its original messages, model inputs and outputs, MCP
+arguments and results, final response, and status. The input messages and the
+final trajectory result upload once per run and take priority over workspace
+uploads. The final workspace is read while these JSON files upload. Span
+content uses the SDK's content limits. Tool schemas are a model span attribute.
+Confirmed artifact capture requires NeoSigma SDK 0.19.0 or later.
+
+The runner captures the shared workspace before and after execution through
+the environment's signed `/data/snapshot/workspace` endpoint. That endpoint
+reads regular workspace files and excludes reserved Harbor answer paths.
+Each trace links the original tar stream or a manifest containing the ordered
+parts and their SHA-256 digests. The runner queues file-backed parts in batches
+through the NeoSigma SDK and waits for each receipt before publishing the
+manifest. The SDK retries transient failures. If publication fails, completed
+parts can remain in storage. Capture failures appear on the turn and in the
+runner log.
+
+The starting snapshot precedes attachment staging. The runner separately
+records each successfully staged archive as input, preserving its paths and
+bytes. The final snapshot shows the workspace when the agent finishes. A
+grading snapshot can include later changes from pending coordinator actions.
+
+Starting capture has a 30-second default budget. The post-run budget starts at
+30 seconds and gains 30 seconds per 128 MiB of workspace evidence as archive
+sizes become known, up to 120 seconds. `NEOSIGMA_CAPTURE_TIMEOUT_SECONDS` sets
+a fixed cap for each phase. Every runner flushes the SDK's span exporter
+during logger teardown, and the CLI saves the trajectory result before teardown.
+
+For local trace inspection, use `NEOSIGMA_CONSOLE_EXPORT=true`.
+
+[NeoSigma SDK setup](https://docs.neosigma.ai/sdk/getting-started/installation) ·
+[Artifact capture](https://docs.neosigma.ai/sdk/instrument/tracing/artifacts)
+
 ## Data Models
 
 ### AgentRunInput
