@@ -100,7 +100,8 @@ if __name__ == "__main__":
     setup_error_injection(mcp)
     transport = os.getenv("MCP_TRANSPORT", "http").lower()
     if transport == "http":
+        host = os.getenv("MCP_HOST", "0.0.0.0")
         port = int(os.getenv("MCP_PORT", "5000"))
-        mcp.run(transport="http", host="0.0.0.0", port=port)
+        mcp.run(transport="http", host=host, port=port)
     else:
         mcp.run(transport="stdio")

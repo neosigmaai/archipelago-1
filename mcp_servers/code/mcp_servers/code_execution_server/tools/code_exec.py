@@ -186,11 +186,18 @@ def _sanitize_output(text: str) -> str:
 FS_ROOT = os.getenv("APP_FS_ROOT", "/filesystem")
 CODE_EXEC_COMMAND_TIMEOUT = os.getenv("CODE_EXEC_COMMAND_TIMEOUT", "300")
 SANDBOX_LIBRARY_PATH = os.getenv("SANDBOX_LIBRARY_PATH", DEFAULT_LIBRARY_PATH)
-# Paths to hide from code execution.
+# Paths to hide from code execution, colon-separated in CODE_EXEC_BLOCKED_PATHS
+# (the same format sandbox_fs.c reads from SANDBOX_BLOCKED_PATHS).
 # /proc is blocked to prevent reading /proc/self/environ (env var exfiltration)
 # and /proc/self/root/* (access to blocked paths via procfs).
 # /sys is blocked to prevent system configuration disclosure.
-BLOCKED_PATHS = ["/app", "/.apps_data", "/proc", "/sys"]
+BLOCKED_PATHS = [
+    path
+    for path in os.getenv(
+        "CODE_EXEC_BLOCKED_PATHS", "/app:/.apps_data:/proc:/sys"
+    ).split(":")
+    if path
+]
 
 
 def verify_sandbox_available() -> None:
