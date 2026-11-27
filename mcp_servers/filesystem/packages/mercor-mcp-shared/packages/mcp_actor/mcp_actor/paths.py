@@ -65,7 +65,7 @@ COORDINATOR_ACTOR_ID = "coordinator"
 AUTHORIZATION_HEADER = "authorization"
 BEARER_PREFIX = "bearer "
 
-TARGET_AGENT_FILESYSTEM_ROOT = "/filesystem"
+TARGET_AGENT_FILESYSTEM_ROOT = os.environ.get("APP_FS_ROOT", "/filesystem")
 PRIVATE_APPS_DATA_ROOT = "/.apps_data"
 COORDINATOR_ROOT = f"{PRIVATE_APPS_DATA_ROOT}/.coordinator"
 ACTOR_FILESYSTEMS_ROOT = f"{COORDINATOR_ROOT}/agent_filesystems"
